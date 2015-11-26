@@ -1,15 +1,15 @@
-var _ = require("root/lib/underscore")
 var Sinon = require("sinon")
-var DefaultsFetch = require("root/lib/fetch/defaults_fetch")
+var Fetch = require("./fetch")
+var DefaultsFetch = require("..")
 
-describe("DefaultsFetch", function() {
+describe("FetchDefaults", function() {
   beforeEach(function() {
-    var xhr = window.XMLHttpRequest = Sinon.FakeXMLHttpRequest
+    var xhr = global.XMLHttpRequest = Sinon.FakeXMLHttpRequest
     xhr.onCreate = Array.prototype.push.bind(this.requests = [])
   })
 
   it("must request with default options", function*() {
-    var fetch = DefaultsFetch(window.fetch, {headers: {"X-Time-Zone": "UTC"}})
+    var fetch = DefaultsFetch(Fetch, {headers: {"X-Time-Zone": "UTC"}})
     var res = fetch("/models", {method: "POST"})
 
     this.requests[0].method.must.equal("POST")
@@ -22,8 +22,15 @@ describe("DefaultsFetch", function() {
     ;(yield res.text()).must.equal("Hello")
   })
 
+  it("must return fetch with Headers, Request and Response", function() {
+    var fetch = DefaultsFetch(Fetch, {headers: {"X-Time-Zone": "UTC"}})
+    fetch.Headers.must.equal(Fetch.Headers)
+    fetch.Request.must.equal(Fetch.Request)
+    fetch.Response.must.equal(Fetch.Response)
+  })
+
   it("must merge options", function*() {
-    var fetch = DefaultsFetch(window.fetch, {headers: {"X-CSRF-Token": "Foo"}})
+    var fetch = DefaultsFetch(Fetch, {headers: {"X-CSRF-Token": "Foo"}})
     fetch("/", {headers: {"X-Time-Zone": "UTC"}})
 
     this.requests[0].requestHeaders.must.eql({
@@ -33,14 +40,14 @@ describe("DefaultsFetch", function() {
   })
 
   it("must not overwrite headers", function() {
-    var fetch = DefaultsFetch(window.fetch, {headers: {"X-Time-Zone": "UTC"}})
+    var fetch = DefaultsFetch(Fetch, {headers: {"X-Time-Zone": "UTC"}})
     fetch("/", {headers: {"X-Time-Zone": "Europe/Tallinn"}})
     this.requests[0].requestHeaders.must.eql({"x-time-zone": "Europe/Tallinn"})
   })
 
   it("must call default function with url and options", function*() {
     var defaults = Sinon.spy()
-    var fetch = DefaultsFetch(window.fetch, defaults)
+    var fetch = DefaultsFetch(Fetch, defaults)
     fetch("/models", {method: "POST"})
 
     defaults.callCount.must.equal(1)
@@ -49,8 +56,8 @@ describe("DefaultsFetch", function() {
   })
 
   it("must merge options given a function", function() {
-    var defaults = _.constant({headers: {"X-Time-Zone": "UTC"}})
-    var fetch = DefaultsFetch(window.fetch, defaults)
+    function defaults() { return {headers: {"X-Time-Zone": "UTC"}} }
+    var fetch = DefaultsFetch(Fetch, defaults)
     fetch("/models", {method: "POST"})
 
     this.requests[0].method.must.equal("POST")
