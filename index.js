@@ -7,7 +7,7 @@ module.exports = function(fetch, rootUrl, defaults) {
 
   return assign(function(url, opts) {
     if (rootUrl != null) url = resolve(rootUrl, url)
-    if (typeof defaults == "function") defaults = defaults(url, opts)
+    if (typeof defaults === "function") defaults = defaults(url, opts)
     return fetch(url, opts == null ? defaults : merge({}, defaults, opts))
   }, fetch)
 }
