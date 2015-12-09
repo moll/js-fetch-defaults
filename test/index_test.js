@@ -8,12 +8,20 @@ describe("FetchDefaults", function() {
     xhr.onCreate = Array.prototype.push.bind(this.requests = [])
   })
 
-  it("must request with default options", function*() {
+  it("must return fetch with Headers, Request and Response", function() {
     var fetch = DefaultsFetch(Fetch, {headers: {"X-Time-Zone": "UTC"}})
+    fetch.Headers.must.equal(Fetch.Headers)
+    fetch.Request.must.equal(Fetch.Request)
+    fetch.Response.must.equal(Fetch.Response)
+  })
+
+  it("must request with resolved path and options", function*() {
+    var root = "https://example.com"
+    var fetch = DefaultsFetch(Fetch, root, {headers: {"X-Time-Zone": "UTC"}})
     var res = fetch("/models", {method: "POST"})
 
     this.requests[0].method.must.equal("POST")
-    this.requests[0].url.must.equal("/models")
+    this.requests[0].url.must.equal("https://example.com/models")
     this.requests[0].requestHeaders.must.eql({"x-time-zone": "UTC"})
 
     this.requests[0].respond(200, {}, "Hello")
@@ -22,11 +30,19 @@ describe("FetchDefaults", function() {
     ;(yield res.text()).must.equal("Hello")
   })
 
-  it("must return fetch with Headers, Request and Response", function() {
+  it("must request with URL if given", function*() {
+    var fetch = DefaultsFetch(Fetch, "https://example.com")
+    fetch("https://api.example.com/models")
+    this.requests[0].url.must.equal("https://api.example.com/models")
+  })
+
+  it("must request with default options if no URL given", function*() {
     var fetch = DefaultsFetch(Fetch, {headers: {"X-Time-Zone": "UTC"}})
-    fetch.Headers.must.equal(Fetch.Headers)
-    fetch.Request.must.equal(Fetch.Request)
-    fetch.Response.must.equal(Fetch.Response)
+    fetch("/models", {method: "POST"})
+
+    this.requests[0].method.must.equal("POST")
+    this.requests[0].url.must.equal("/models")
+    this.requests[0].requestHeaders.must.eql({"x-time-zone": "UTC"})
   })
 
   it("must merge options", function*() {
