@@ -30,13 +30,13 @@ describe("FetchDefaults", function() {
     ;(yield res.text()).must.equal("Hello")
   })
 
-  it("must request with URL if given", function*() {
+  it("must request with URL if given", function() {
     var fetch = defaults(Fetch, "https://example.com")
     fetch("https://api.example.com/models")
     this.requests[0].url.must.equal("https://api.example.com/models")
   })
 
-  it("must request with default options if no URL given", function*() {
+  it("must request with default options if no URL given", function() {
     var fetch = defaults(Fetch, {headers: {"X-Time-Zone": "UTC"}})
     fetch("/models", {method: "POST"})
 
@@ -45,7 +45,7 @@ describe("FetchDefaults", function() {
     this.requests[0].requestHeaders.must.eql({"x-time-zone": "UTC"})
   })
 
-  it("must merge options", function*() {
+  it("must merge options", function() {
     var fetch = defaults(Fetch, {headers: {"X-CSRF-Token": "Foo"}})
     fetch("/", {headers: {"X-Time-Zone": "UTC"}})
 
