@@ -1,6 +1,6 @@
 var Sinon = require("sinon")
 var Fetch = require("./fetch")
-var DefaultsFetch = require("..")
+var defaults = require("..")
 
 describe("FetchDefaults", function() {
   beforeEach(function() {
@@ -9,7 +9,7 @@ describe("FetchDefaults", function() {
   })
 
   it("must return fetch with Headers, Request and Response", function() {
-    var fetch = DefaultsFetch(Fetch, {headers: {"X-Time-Zone": "UTC"}})
+    var fetch = defaults(Fetch, {headers: {"X-Time-Zone": "UTC"}})
     fetch.Headers.must.equal(Fetch.Headers)
     fetch.Request.must.equal(Fetch.Request)
     fetch.Response.must.equal(Fetch.Response)
@@ -17,7 +17,7 @@ describe("FetchDefaults", function() {
 
   it("must request with resolved path and options", function*() {
     var root = "https://example.com"
-    var fetch = DefaultsFetch(Fetch, root, {headers: {"X-Time-Zone": "UTC"}})
+    var fetch = defaults(Fetch, root, {headers: {"X-Time-Zone": "UTC"}})
     var res = fetch("/models", {method: "POST"})
 
     this.requests[0].method.must.equal("POST")
@@ -31,13 +31,13 @@ describe("FetchDefaults", function() {
   })
 
   it("must request with URL if given", function*() {
-    var fetch = DefaultsFetch(Fetch, "https://example.com")
+    var fetch = defaults(Fetch, "https://example.com")
     fetch("https://api.example.com/models")
     this.requests[0].url.must.equal("https://api.example.com/models")
   })
 
   it("must request with default options if no URL given", function*() {
-    var fetch = DefaultsFetch(Fetch, {headers: {"X-Time-Zone": "UTC"}})
+    var fetch = defaults(Fetch, {headers: {"X-Time-Zone": "UTC"}})
     fetch("/models", {method: "POST"})
 
     this.requests[0].method.must.equal("POST")
@@ -46,7 +46,7 @@ describe("FetchDefaults", function() {
   })
 
   it("must merge options", function*() {
-    var fetch = DefaultsFetch(Fetch, {headers: {"X-CSRF-Token": "Foo"}})
+    var fetch = defaults(Fetch, {headers: {"X-CSRF-Token": "Foo"}})
     fetch("/", {headers: {"X-Time-Zone": "UTC"}})
 
     this.requests[0].requestHeaders.must.eql({
@@ -56,24 +56,24 @@ describe("FetchDefaults", function() {
   })
 
   it("must not overwrite headers", function() {
-    var fetch = DefaultsFetch(Fetch, {headers: {"X-Time-Zone": "UTC"}})
+    var fetch = defaults(Fetch, {headers: {"X-Time-Zone": "UTC"}})
     fetch("/", {headers: {"X-Time-Zone": "Europe/Tallinn"}})
     this.requests[0].requestHeaders.must.eql({"x-time-zone": "Europe/Tallinn"})
   })
 
-  it("must call default function with url and options", function*() {
-    var defaults = Sinon.spy()
-    var fetch = DefaultsFetch(Fetch, defaults)
+  it("must call default function with url and options", function() {
+    var options = Sinon.spy()
+    var fetch = defaults(Fetch, options)
     fetch("/models", {method: "POST"})
 
-    defaults.callCount.must.equal(1)
-    defaults.firstCall.args[0].must.equal("/models")
-    defaults.firstCall.args[1].must.eql({method: "POST"})
+    options.callCount.must.equal(1)
+    options.firstCall.args[0].must.equal("/models")
+    options.firstCall.args[1].must.eql({method: "POST"})
   })
 
   it("must merge options given a function", function() {
-    function defaults() { return {headers: {"X-Time-Zone": "UTC"}} }
-    var fetch = DefaultsFetch(Fetch, defaults)
+    function options() { return {headers: {"X-Time-Zone": "UTC"}} }
+    var fetch = defaults(Fetch, options)
     fetch("/models", {method: "POST"})
 
     this.requests[0].method.must.equal("POST")
