@@ -15,16 +15,20 @@ describe("FetchDefaults", function() {
     fetch.Response.must.equal(Fetch.Response)
   })
 
-  it("must request with resolved path and options", function*() {
+  it("must request with resolved path and options", function() {
     var root = "https://example.com"
     var fetch = defaults(Fetch, root, {headers: {"X-Time-Zone": "UTC"}})
-    var res = fetch("/models", {method: "POST"})
+    fetch("/models", {method: "POST"})
 
     this.requests[0].method.must.equal("POST")
     this.requests[0].url.must.equal("https://example.com/models")
     this.requests[0].requestHeaders.must.eql({"x-time-zone": "UTC"})
+  })
 
+  it("must respond", function*() {
+    var res = defaults(Fetch, "https://example.com")("/models")
     this.requests[0].respond(200, {}, "Hello")
+
     res = yield res
     res.status.must.equal(200)
     ;(yield res.text()).must.equal("Hello")
