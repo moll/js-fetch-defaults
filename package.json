@@ -1,8 +1,10 @@
 {
 	"name": "@moll/fetch-defaults",
 	"version": "0.1.337",
-	"description": "",
-	"keywords": [],
+	"description": "Fetch API mixin to set a default base URL and options. Functional and immutable.",
+	"keywords": [
+		"fetch"
+	],
 	"homepage": "https://github.com/moll/js-fetch-defaults",
 	"bugs": "https://github.com/moll/js-fetch-defaults/issues",
 
