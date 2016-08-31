@@ -1,6 +1,6 @@
 {
 	"name": "fetch-defaults",
-	"version": "0.1.337",
+	"version": "1.0.0",
 	"description": "Fetch API mixin to set a default base URL and options. Functional and immutable.",
 	"keywords": [
 		"fetch"
