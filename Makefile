@@ -1,5 +1,5 @@
 NODE = node
-NODE_OPTS =
+NODE_OPTS = --harmony
 TEST_OPTS =
 
 love:
