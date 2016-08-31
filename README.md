@@ -27,7 +27,7 @@ Pass the native `fetch` function and a base URL and/or options to `fetchDefaults
 var fetchDefaults = require("fetch-defaults")
 
 var apiFetch = fetchDefaults(fetch, "https://example.com", {
-  headers: {"Authorization": "Bearer 42"}
+  headers: {Authorization: "Bearer 42"}
 })
 ```
 
@@ -50,7 +50,7 @@ Likewise, if you don't need a base URL, pass only options:
 
 ```javascript
 var apiFetch = fetchDefaults(fetch, {
-  headers: {"Authorization": "Bearer 42"}
+  headers: {Authorization: "Bearer 42"}
 })
 
 var res = apiFetch("https://example.com/models", {
