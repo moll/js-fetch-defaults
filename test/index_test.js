@@ -2,6 +2,12 @@ var Sinon = require("sinon")
 var Fetch = require("./fetch")
 var defaults = require("..")
 
+function headersIncluding(actual, expected) {
+  for (var key in expected) {
+    actual.must.have.property(key, expected[key])
+  }
+}
+
 describe("FetchDefaults", function() {
   beforeEach(function() {
     var xhr = global.XMLHttpRequest = Sinon.FakeXMLHttpRequest
@@ -22,7 +28,7 @@ describe("FetchDefaults", function() {
 
     this.requests[0].method.must.equal("POST")
     this.requests[0].url.must.equal("https://example.com/models")
-    this.requests[0].requestHeaders.must.eql({"x-time-zone": "UTC"})
+    headersIncluding(this.requests[0].requestHeaders, {"x-time-zone": "UTC"})
   })
 
   it("must respond", function*() {
@@ -46,14 +52,14 @@ describe("FetchDefaults", function() {
 
     this.requests[0].method.must.equal("POST")
     this.requests[0].url.must.equal("/models")
-    this.requests[0].requestHeaders.must.eql({"x-time-zone": "UTC"})
+    headersIncluding(this.requests[0].requestHeaders, {"x-time-zone": "UTC"})
   })
 
   it("must merge options", function() {
     var fetch = defaults(Fetch, {headers: {"X-CSRF-Token": "Foo"}})
     fetch("/", {headers: {"X-Time-Zone": "UTC"}})
 
-    this.requests[0].requestHeaders.must.eql({
+    headersIncluding(this.requests[0].requestHeaders, {
       "x-csrf-token": "Foo",
       "x-time-zone": "UTC"
     })
@@ -62,7 +68,9 @@ describe("FetchDefaults", function() {
   it("must not overwrite headers", function() {
     var fetch = defaults(Fetch, {headers: {"X-Time-Zone": "UTC"}})
     fetch("/", {headers: {"X-Time-Zone": "Europe/Tallinn"}})
-    this.requests[0].requestHeaders.must.eql({"x-time-zone": "Europe/Tallinn"})
+    headersIncluding(this.requests[0].requestHeaders, {
+      "x-time-zone": "Europe/Tallinn"
+    })
   })
 
   it("must call default function with url and options", function() {
@@ -82,6 +90,59 @@ describe("FetchDefaults", function() {
 
     this.requests[0].method.must.equal("POST")
     this.requests[0].url.must.equal("/models")
-    this.requests[0].requestHeaders.must.eql({"x-time-zone": "UTC"})
+    headersIncluding(this.requests[0].requestHeaders, {"x-time-zone": "UTC"})
+  })
+
+  describe("given Request", function() {
+    it("must apply defaults when called with Request alone", function() {
+      var fetch = defaults(Fetch, {headers: {"X-Time-Zone": "UTC"}})
+      var req = new Fetch.Request("/models", {
+        method: "POST",
+        headers: {"X-CSRF-Token": "Foo"}
+      })
+      fetch(req)
+
+      this.requests[0].method.must.equal("POST")
+      this.requests[0].url.must.equal("/models")
+      headersIncluding(this.requests[0].requestHeaders, {
+        "x-csrf-token": "Foo",
+        "x-time-zone": "UTC"
+      })
+    })
+
+    it("must resolve Request URL against root and apply defaults", function() {
+      var fetch = defaults(Fetch, "https://example.com", {
+        headers: {"X-Time-Zone": "UTC"}
+      })
+      fetch(new Fetch.Request("/models", {method: "POST"}))
+
+      this.requests[0].method.must.equal("POST")
+      this.requests[0].url.must.equal("https://example.com/models")
+      headersIncluding(this.requests[0].requestHeaders, {"x-time-zone": "UTC"})
+    })
+
+    it("must let explicit init override Request and defaults", function() {
+      var fetch = defaults(Fetch, {headers: {"X-Time-Zone": "UTC"}})
+      var req = new Fetch.Request("/models", {
+        method: "POST",
+        headers: {"X-CSRF-Token": "Foo"}
+      })
+      fetch(req, {method: "PUT", headers: {"X-Time-Zone": "Europe/Tallinn"}})
+
+      this.requests[0].method.must.equal("PUT")
+      headersIncluding(this.requests[0].requestHeaders, {
+        "x-csrf-token": "Foo",
+        "x-time-zone": "Europe/Tallinn"
+      })
+    })
+
+    it("must preserve Request body when applying defaults", function() {
+      var fetch = defaults(Fetch, {headers: {"X-Time-Zone": "UTC"}})
+      fetch(new Fetch.Request("/models", {method: "POST", body: "John"}))
+
+      this.requests[0].method.must.equal("POST")
+      this.requests[0].requestBody.must.equal("John")
+      headersIncluding(this.requests[0].requestHeaders, {"x-time-zone": "UTC"})
+    })
   })
 })
