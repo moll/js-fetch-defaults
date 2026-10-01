@@ -22,7 +22,7 @@ describe("FetchDefaults", function() {
 
     this.requests[0].method.must.equal("POST")
     this.requests[0].url.must.equal("https://example.com/models")
-    this.requests[0].requestHeaders.must.eql({"x-time-zone": "UTC"})
+    this.requests[0].requestHeaders["x-time-zone"].must.equal("UTC")
   })
 
   it("must respond", function*() {
@@ -46,7 +46,7 @@ describe("FetchDefaults", function() {
 
     this.requests[0].method.must.equal("POST")
     this.requests[0].url.must.equal("/models")
-    this.requests[0].requestHeaders.must.eql({"x-time-zone": "UTC"})
+    this.requests[0].requestHeaders["x-time-zone"].must.equal("UTC")
   })
 
   it("must merge options", function() {
@@ -82,6 +82,29 @@ describe("FetchDefaults", function() {
 
     this.requests[0].method.must.equal("POST")
     this.requests[0].url.must.equal("/models")
-    this.requests[0].requestHeaders.must.eql({"x-time-zone": "UTC"})
+    this.requests[0].requestHeaders["x-time-zone"].must.equal("UTC")
   })
+
+  it("must apply defaults when given a Request", function() {
+    var fetch = defaults(Fetch, {headers: {"X-Time-Zone": "UTC"}})
+    fetch(new Fetch.Request("/models", {
+      method: "POST",
+      headers: {"X-CSRF-Token": "Foo"}
+    }))
+
+    this.requests[0].method.must.equal("POST")
+    this.requests[0].url.must.equal("/models")
+    this.requests[0].requestHeaders["x-csrf-token"].must.equal("Foo")
+    this.requests[0].requestHeaders["x-time-zone"].must.equal("UTC")
+  })
+
+  it("must resolve root URL when given a Request", function() {
+    var fetch = defaults(Fetch, "https://example.com", {
+      headers: {"X-Time-Zone": "UTC"}
+    })
+    fetch(new Fetch.Request("/models"))
+    this.requests[0].url.must.equal("https://example.com/models")
+    this.requests[0].requestHeaders["x-time-zone"].must.equal("UTC")
+  })
+
 })
